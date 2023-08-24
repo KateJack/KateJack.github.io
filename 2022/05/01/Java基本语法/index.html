@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
+  <title>Java基本语法 [ 刘盼的技术博客 ]</title>
+  
+    <!-- stylesheets list from config.yml -->
+    
+      <link rel="stylesheet" href="/css/iLiKE.css">
+    
+  
+  
+  
+  <script src="//cdn1.lncld.net/static/js/3.1.1/av-min.js"></script>
+    <script id="leancloud">
+      AV.init({
+          appId: "6E5zTbTljdUbVW2WkXPsXGJk-gzGzoHsz",
+          appKey: "0vsyDKfNpeSECAI70J794ugv"
+      });
+    </script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+<body>
+    <div class="header">
+        <div class="container">
+    <div class="menu">
+      <div class="menu-left">
+        <a href="/">
+          <img src="/favicon.ico"></img>
+        </a>
+      </div>
+      <div class="menu-right">
+        
+          
+          
+          
+          
+          
+          
+          <a href="/">Home</a>
+        
+          
+          
+          
+          
+          
+          
+          <a href="/archives">Archives</a>
+        
+      </div>
+    </div>
+</div>
+    </div>
+    <div class="container">
+        <h1 class="post-title">Java基本语法</h1>
+<article class="post markdown-style">
+  <h1 id="1、Java中的名称命名规范"><a href="#1、Java中的名称命名规范" class="headerlink" title="1、Java中的名称命名规范"></a>1、Java中的名称命名规范</h1><ul>
+<li>包名：多单词组成时所有字母都小写：xxxyyyzzz</li>
+<li>类名、接口名：多单词组成时，所有单词的首字母大写：XxxYyyZzz</li>
+<li>变量名、方法名：多单词组成时，第一个单词首字母小写，第二个单词开始每个单词首字母大写：xxxYyyZzz</li>
+<li>常量名：所有字母都大写。多单词时每个单词都用下划线连接：XXX_YYY_ZZZ</li>
+</ul>
+<h1 id="2、基本数据类型之间的运算规则"><a href="#2、基本数据类型之间的运算规则" class="headerlink" title="2、基本数据类型之间的运算规则"></a>2、基本数据类型之间的运算规则</h1><p> 前提：这里讨论只是7种基本数据类型变量间的运算，不包含boolean类型的。</p>
+<ul>
+<li><p>自动类型提升：  </p>
+<p>   结论：当容量小的数据类型的变量与容量大的数据类型的变量做运算时，结果自动提升为容量大的数据类型。<br>   byte、char、short –&gt; int –&gt; long –&gt; float –&gt; double<br>  特别的：当byte、char、short三种类型的变量做运算时，结果为int型 </p>
+</li>
+<li><p>强制类型转换：自动类型提升运算的逆运算</p>
+<ul>
+<li><p>需要使用强转符：（）</p>
+</li>
+<li><p>注意点：强制类型转换，可能导致精度损失。</p>
+<p>说明：此时的容量大小指的是，表示数的范围的大和小。比如float容量要大于long的容量</p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="3、比较运算符：开发中推荐使用-amp-amp-和"><a href="#3、比较运算符：开发中推荐使用-amp-amp-和" class="headerlink" title="3、比较运算符：开发中推荐使用 &amp;&amp; 和 ||"></a>3、比较运算符：开发中推荐使用 <strong>&amp;&amp;</strong> 和 <strong>||</strong></h1><p>区分&amp; 与 &amp;&amp;</p>
+<ul>
+<li>&amp; 与 &amp;&amp; 的远算结果相同</li>
+<li>当符号左边是true时，二者都会执行符合右边的运算</li>
+<li>当符号左边是false时，&amp; 会继续执行符号右边的运算。&amp;&amp; 不再执行符号右边的运算。<br>- | 与 || 的远算结果相同<br>- 当符号左边是false时，二者都会执行符合右边的运算<br>- 当符号左边是true时，| 会继续执行符号右边的运算。|| 不再执行符号右边的运算。</li>
+</ul>
+<h1 id="4、面向对象内存解析"><a href="#4、面向对象内存解析" class="headerlink" title="4、面向对象内存解析"></a>4、面向对象内存解析</h1><blockquote>
+<p><strong>堆（heap）</strong>：凡是new出来的结构（对象的实体、数组实体）都放在堆空间中。包括对象中的属性</p>
+<p><strong>栈（stack）</strong>：方法内定义的变量，存放在栈中。</p>
+<p><strong>方法区（method area）</strong>：存放类的模板。比如：Person类的模板</p>
+</blockquote>
+<ul>
+<li>属性和局部变量的不同点<ul>
+<li>类中声明的位置的不同：<br>属性：声明在类内，方法外的变量<br>局部变量：声明在方法、构造器内部的变量</li>
+<li>在内存中分配的位置不同：<br>属性：随着对象的创建，存储在堆空间中<br>局部变量：存储在栈空间</li>
+<li>生命周期不同：<br>属性：随着对象的创建而创建，随着对象的消亡而消亡<br>局部变量：随着方法对应的栈帧入栈，局部变量会在栈中分配；随着方法对应的栈帧出栈，局部变量消亡</li>
+<li>作用域：<br>属性：在整个类的内部都是有效的<br>局部变量：仅限于声明局部变量所在的方法（或构造器、代码块）内</li>
+<li>是否可以有权限修饰符（public、protected、private）进行修饰：<br>属性：可以<br>局部变量：不能</li>
+<li>是否有默认值：<br>属性：都有默认初始化值，意味着，如果没有给属性进行显式初始化赋值，则会有默认初始化值。<br>局部变量：都没有默认初始化值，意味着，在使用局部变量之前，必须要显式赋值。</li>
+</ul>
+</li>
+</ul>
+<h1 id="5、面向对象方法"><a href="#5、面向对象方法" class="headerlink" title="5、面向对象方法"></a>5、面向对象方法</h1><ul>
+<li>方法的重载<br> 两同：同一个类、相同的方法名<br>一不同：参数列表不同。（1）参数个数不同（2）参数类型不同<br><strong>注意</strong>：方法的重载与形参的名、权限修饰符、返回值类型都没有关系<br>举例：public void add(int m, int n){} 与 public int add(int i, int j){}是同一个函数，不是方法的重载。因为对于编译器来说，方法名相同且形参列表相同（相同的形参个数和类型），则这些方法是相同的</li>
+<li>方法的值传递机制<br>对于方法内声明的局部变量来说，如果出现赋值操作  <ul>
+<li>如果是<strong>基本</strong>数据类型的变量，则将此变量保存的<strong>数据值</strong>传递出去。</li>
+<li>如果是<strong>引用</strong>数据类型的变量，则将此变量保存的<strong>地址值</strong>传递出去。<br>  形参：在定义方法时，方法名后面括号()中声明的变量称为形式参数，简称形参。<br>实参：在调用方法时，方法名后面括号()中的使用的值&#x2F;变量&#x2F;表达式称为实际参数，简称实参。<br>  实参给形参赋值的过程：</li>
+<li>如果形参是<strong>基本</strong>数据类型的变量，则将实参保存的<strong>数据值</strong>赋值给形参</li>
+<li>如果形参是<strong>引用</strong>数据类型的变量，则将实参保存的<strong>地址值</strong>赋值给形参</li>
+</ul>
+</li>
+</ul>
+<h1 id="6、方法重写应遵循的规则"><a href="#6、方法重写应遵循的规则" class="headerlink" title="6、方法重写应遵循的规则"></a>6、方法重写应遵循的规则</h1><ol>
+<li>父类被重写的方法与子类重写的方法的<strong>方法名和形参列表必须相同</strong></li>
+<li>子类重写的方法的权限修饰符<strong>不小于</strong>父类被重写的方法的权限修饰符</li>
+</ol>
+<ul>
+<li>子类<strong>不能重写</strong>父类中声明为<strong>private</strong>权限修饰符的方法</li>
+</ul>
+<ol start="3">
+<li>关于返回值类型</li>
+</ol>
+<ul>
+<li>父类被重写的方法的返回值类型是<strong>void</strong>，则子类重写的方法的返回值类型必须是<strong>void</strong></li>
+<li>父类被重写的方法的返回值类型是<strong>基本</strong>数据类型，则子类重写的方法的返回值类型必须与被重写的返回值类型<strong>相同</strong></li>
+<li>父类被重写的方法的返回值类型是<strong>引用</strong>数据类型（比如类），则子类重写的方法的返回值类型可以与被重写的方法的返回值类型<strong>相同</strong> 或 是被重写方法的返回值类型的<strong>子类</strong></li>
+</ul>
+<ol start="4">
+<li>子类重写的方法抛出的异常类型可以与父类被重写的方法抛出的<strong>异常类型相同</strong>，或是父类父类被重写的方法抛出的异常类型的<strong>子类</strong></li>
+</ol>
+<h1 id="7、super调用构造器"><a href="#7、super调用构造器" class="headerlink" title="7、super调用构造器"></a>7、super调用构造器</h1><p> ① 子类继承父类时，不会继承父类的构造器。只能通过”super(形参列表)”的方式调用父类指定的构造器。<br> ② 规定：”super(形参列表)”，必须声明在构造器的首行。<br> ③ 我们前面讲过，在构造器的首行可以使用”this(形参列表)”，调用本类中重载的构造器， 结合②，结论：<br>        在构造器的首行，”this(形参列表)” 和 “super(形参列表)”只能二选一。<br> ④ 如果在子类构造器的首行既没有显示调用”this(形参列表)”，也没有显式调用”super(形参列表)”， ​ 则子类此<br>    构造器默认调用”super()”，即调用父类中空参的构造器。<br> ⑤ 由③和④得到结论：子类的任何一个构造器中，要么会调用本类中重载的构造器，要么会调用父类的构造<br>     器。 只能是这两种情况之一。<br> ⑥ 由⑤得到：一个类中声明有n个构造器，最多有n-1个构造器中使用了”this(形参列表)”，则剩下的那个一定<br>     使用”super(形参列表)”。</p>
+<blockquote>
+<p>我们在通过子类的构造器创建对象时，一定在调用子类构造器的过程中，直接或间接的调用到父类的构造器。也正因为调用过父类的构造器，我们才会将父类中声明的属性或方法加载到内存中，供子类对象使用。</p>
+</blockquote>
+
+</article>
+
+    <div class="pagenator post-pagenator">
+    
+    
+        <a class="extend prev post-prev" href="/2022/05/10/IntelliJ%20IDEA%20%E5%B8%B8%E7%94%A8%E5%BF%AB%E6%8D%B7%E9%94%AE%E4%B8%80%E8%A7%88%E8%A1%A8/">prev</a>
+    
+
+    
+    <p>last update time 2023-08-24</p>
+    
+    
+    </div>
+
+
+    </div>
+    <div class="footer">
+        <div class="container">
+    <div class="social">
+	<ul class="social-list">
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+	</ul>
+</div>
+    <div class="copyright">
+        <span>
+            
+            
+            
+                © 刘盼 2022 - 2023
+            
+        </span>
+    </div>
+    <div class="power">
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> & <a target="_blank" rel="noopener" href="https://github.com/CaiChenghan/iLiKE">iLiKE Theme</a>
+        </span>
+    </div>
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+    <!--page counter part-->
+<script>
+function addCount (Counter) {
+    url=$('.article-date').attr('href').trim();
+    title = $('.article-title').text().trim();
+    var query = new AV.Query(Counter);
+    //use url as unique idnetfication
+    query.equalTo("url",url);
+    query.find({
+        success: function(results) {
+            if (results.length>0) {
+                var counter=results[0];
+                counter.fetchWhenSave(true); //get recent result
+                counter.increment("time");
+                counter.save();
+            } else {
+                var newcounter=new Counter();
+                newcounter.set("title",title);
+                newcounter.set("url",url);
+                newcounter.set("time",1);
+                newcounter.save(null,{
+                    success: function(newcounter) {
+                        //alert('New object created');
+                    }, error: function(newcounter,error) {
+                        alert('Failed to create');
+                    }
+                })
+            }
+        },
+        error: function(error) {
+            //find null is not a error
+            alert('Error:'+error.code+" "+error.message);
+        }
+    });
+}
+$(function() {
+    var Counter=AV.Object.extend("Counter");
+    //only increse visit counting when intering a page
+    if ($('.article-title').length == 1) {
+       addCount(Counter);
+    }
+    var query=new AV.Query(Counter);
+    query.descending("time");
+    // the sum of popular posts
+    query.limit(10); 
+    query.find({
+        success: function(results) {
+                for(var i=0;i<results.length;i++) {
+                    var counter=results[i];
+                    title=counter.get("title");
+                    url=counter.get("url");
+                    time=counter.get("time");
+                    // add to the popularlist widget
+                    showcontent=title+" ("+time+")";
+                    //notice the "" in href
+                    $('.popularlist').append('<li><a href="'+url+'">'+showcontent+'</a></li>');
+                }
+            },
+        error: function(error) {
+            alert("Error:"+error.code+" "+error.message);
+        }
+    });
+});
+</script>
+</div>
+    </div>
+</body>
+</html>

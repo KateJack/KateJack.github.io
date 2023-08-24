@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
+  <title>SpringCloud常用组件 [ 刘盼的技术博客 ]</title>
+  
+    <!-- stylesheets list from config.yml -->
+    
+      <link rel="stylesheet" href="/css/iLiKE.css">
+    
+  
+  
+  
+  <script src="//cdn1.lncld.net/static/js/3.1.1/av-min.js"></script>
+    <script id="leancloud">
+      AV.init({
+          appId: "6E5zTbTljdUbVW2WkXPsXGJk-gzGzoHsz",
+          appKey: "0vsyDKfNpeSECAI70J794ugv"
+      });
+    </script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+<body>
+    <div class="header">
+        <div class="container">
+    <div class="menu">
+      <div class="menu-left">
+        <a href="/">
+          <img src="/favicon.ico"></img>
+        </a>
+      </div>
+      <div class="menu-right">
+        
+          
+          
+          
+          
+          
+          
+          <a href="/">Home</a>
+        
+          
+          
+          
+          
+          
+          
+          <a href="/archives">Archives</a>
+        
+      </div>
+    </div>
+</div>
+    </div>
+    <div class="container">
+        <h1 class="post-title">SpringCloud常用组件</h1>
+<article class="post markdown-style">
+  <h1 id="SpringCloud常用组件"><a href="#SpringCloud常用组件" class="headerlink" title="SpringCloud常用组件"></a>SpringCloud常用组件</h1><ul>
+<li>注册中心：Eureka、Nacos</li>
+<li>负载均衡：Ribbon</li>
+<li>远程调用：OpenFeign</li>
+<li>网关组件：Zuul、Gateway</li>
+<li>服务保护：Hystrix、Sentinel</li>
+<li>服务配置管理组件：SpringCloudConfig、Nacos</li>
+</ul>
+<h1 id="微服务保护（Sentinel）"><a href="#微服务保护（Sentinel）" class="headerlink" title="微服务保护（Sentinel）"></a>微服务保护（Sentinel）</h1><p>Sentinel默认监控SpringMVC下的Controller里的资源，其他资源如service需要被监控的话，需要加注解&#x3D;&#x3D;@SentinelResource(“resourceName”)&#x3D;&#x3D;，热点参数限流对默认的SpringMVC资源无效，使用热点参数限流是也需要在对应的资源上添加注解</p>
+<h2 id="雪崩问题及解决方案"><a href="#雪崩问题及解决方案" class="headerlink" title="雪崩问题及解决方案"></a>雪崩问题及解决方案</h2><ul>
+<li><p>雪崩：微服务调用链路中的某个服务故障，引起整个链路中的所有微服务都不可用，这就是雪崩。</p>
+</li>
+<li><p>缓存雪崩：当缓存中有大量的key在同一时刻过期，或者Redis直接宕机了，导致大量的查询请求全部到达数据库，造成数据库查询压力骤增，甚至直接挂掉。</p>
+</li>
+</ul>
+<p>针对雪崩问题的解决方式：</p>
+<ul>
+<li>超时处理：设定超时时间，请求超过一定时间没有响应就返回错误信息，不会无休止等待。只能起到缓解作用。</li>
+<li>舱壁模式：限定每个业务能使用的线程数，避免耗尽整个tomcat的资源，因此也叫线程隔离。解决了雪崩问题，但在一定程度上浪费了服务器资源。</li>
+<li>熔断降级：由<strong>断路器</strong>统计业务执行的异常比例，如果超出阈值则会熔断该业务，拦截访问该业务的一切请求。</li>
+<li>流量控制：限制业务访问的QPS，避免服务因流量的突增而故障。预防雪崩的出现</li>
+</ul>
+<p>缓存雪崩的解决方案：</p>
+<ul>
+<li>针对大量key同时过期的情况，只需要将每个key的过期时间打散，使它们的失效点尽可能分布均匀</li>
+<li>针对Redis发生故障，部署Redis时可以使用Redis的几种高可用方案：主从（masterslave）架构、哨兵（Sentinel）机制、Redis集群</li>
+</ul>
+<h2 id="1、流量控制"><a href="#1、流量控制" class="headerlink" title="1、流量控制"></a>1、流量控制</h2><h3 id="流控模式："><a href="#流控模式：" class="headerlink" title="流控模式："></a>流控模式：</h3><ul>
+<li>直接：统计当前资源的请求，触发阈值时对当前资源直接限流，也是默认的模式</li>
+<li>关联：统计与当前资源相关的另一个资源，触发阈值时，对当前资源限流。例如有查询订单和修改订单两个业务，对查询订单添加关联规则，关联到修改订单，那么，当修改订单资源达到阈值时，对查询订单进行限流。满足“两个有竞争关系的资源”和“一个优先级高，一个优先级较低”这两个条件可以使用关联模式</li>
+<li>链路：统计从指定链路访问到本资源的请求，触发阈值时，对指定链路限流</li>
+</ul>
+<h3 id="流控效果"><a href="#流控效果" class="headerlink" title="流控效果"></a>流控效果</h3><ul>
+<li>快速失败：达到阈值后，新的请求会被立即拒绝并抛出FlowException异常429。默认处理方式</li>
+<li>warm up：预热模式，对超出阈值的请求同样是拒绝并抛出异常。但这种模式的阈值会动态变化，从一个较小的值逐渐增加到最大阈值。请求阈值初始值是threshold&#x2F;coldFactor，持续指定时长后，逐渐提高到threshold值。而codeFactor的默认值为3</li>
+<li>排队等待：让所有的请求按照先后次序排队执行，两个请求的间隔不能小于指定时长。</li>
+</ul>
+<h2 id="2、线程隔离"><a href="#2、线程隔离" class="headerlink" title="2、线程隔离"></a>2、线程隔离</h2><ul>
+<li>信号量隔离：基于计数器模式，简单，开销小，适合高扇出场景，如gateway网关</li>
+<li>线程池隔离：基于线程池隔离，有额外开销，但隔离控制更强，适合低扇出场景</li>
+</ul>
+<h2 id="3、熔断降级"><a href="#3、熔断降级" class="headerlink" title="3、熔断降级"></a>3、熔断降级</h2><p>降级规则主要通过熔断策略实现</p>
+<ul>
+<li>慢调用：业务的响应时长（RT）大于指定时长的请求认定为慢调用请求。在指定时间内，如果请求数量超过设定的最小数量，慢调用比例大于设定的阈值，则触发熔断。</li>
+<li>异常比例或异常数：统计指定时间内的调用，如果调用次数超过指定请求数，并且出现异常比例达到设定的比例阈值（或超过指定异常数），则触发熔断。</li>
+</ul>
+<h2 id="4、配置管理模式"><a href="#4、配置管理模式" class="headerlink" title="4、配置管理模式"></a>4、配置管理模式</h2><ul>
+<li>原始模式：保存在内存，重启服务会丢失</li>
+<li>pull模式：保存在本地文件或数据库，定时去读取，时效性差</li>
+<li>push模式：保存在nacos，监听变更实时更新</li>
+</ul>
+<h1 id="CAP原理"><a href="#CAP原理" class="headerlink" title="CAP原理"></a>CAP原理</h1><ul>
+<li>Consistency（一致性）：用户访问分布式系统中的任意结点，得到的数据必须一致</li>
+<li>Availability（可用性）：用户访问集群中的任意健康节点，必须得到响应，而不是超时或拒绝</li>
+<li>Partition tolerance（分区容错）：因为网络故障或其他原因导致分布式系统中的部分节点与其他节点失去连接，形成独立分区。在集群出现分区时，整个系统也要持续对外提供服务。</li>
+</ul>
+<p>分布式系统节点通过网络连接，一定会出现分布问题（p)，当分区出现时，系统的一致性（C）和可用性（A）就无法同时满足。</p>
+<p>ES集群出现分区时，故障节点会被剔除集群，数据分片会重新分配到其他节点，保证数据一致。因此是低可用性，高一致性，属于CP。</p>
+<h1 id="BASE理论"><a href="#BASE理论" class="headerlink" title="BASE理论"></a>BASE理论</h1><p>BASE理论是对CAP的一种解决思路，包含三个思想：</p>
+<ul>
+<li>Basically Available（基本可用）：分布式系统出现故障时，允许损失部分可用性，即保证核心可用。</li>
+<li>Soft State（软状态）：在一定时间内，允许出现中间状态，比如临时的不一致状态。</li>
+<li>Eventually Consistent（最终一致性）：虽然无法保证一致性，但是在软状态结束后，最终达到数据一致。</li>
+</ul>
+<h1 id="Seata架构"><a href="#Seata架构" class="headerlink" title="Seata架构"></a>Seata架构</h1><p>事务管理中的三个角色：</p>
+<ul>
+<li>TC（Transaction Coordinator）事务协调者：维护全局和分支事务的状态，协调全局事务提交或回滚。</li>
+<li>TM（Transaction Manager）事务管理器：定义全局事务的范围、开始全局事务、提交或回滚全局事务。</li>
+<li>RM（Resource Manager）资源管理器：管理分支事务处理的资源，与TC交谈以注册分支事务和报告分支事务的状态，并驱动分支事务提交或回滚。</li>
+</ul>
+<p>四种不同的分布式事务解决方案：</p>
+<h2 id="XA模式：强一致性分阶段事务模式，牺牲了一定的可用性，无业务侵入。"><a href="#XA模式：强一致性分阶段事务模式，牺牲了一定的可用性，无业务侵入。" class="headerlink" title="XA模式：强一致性分阶段事务模式，牺牲了一定的可用性，无业务侵入。"></a>XA模式：强一致性分阶段事务模式，牺牲了一定的可用性，无业务侵入。</h2><p><img src="https://images-pl.oss-cn-hangzhou.aliyuncs.com/images/XA%E6%A8%A1%E5%BC%8F.png" alt="XA模式"></p>
+<ul>
+<li>优点：（1）事务的强一致性，满足ACID原则 （2）常用数据库都支持，实现简单且没有代码侵入</li>
+<li>缺点：（1）一阶段需要锁定数据库资源，等待二阶段结束才释放，性能较差。（2）依赖关系型数据库实现事务</li>
+</ul>
+<h2 id="AT模式：最终一致的分阶段事务模式，无业务侵入，也是Seata的默认模式"><a href="#AT模式：最终一致的分阶段事务模式，无业务侵入，也是Seata的默认模式" class="headerlink" title="AT模式：最终一致的分阶段事务模式，无业务侵入，也是Seata的默认模式"></a>AT模式：最终一致的分阶段事务模式，无业务侵入，也是Seata的默认模式</h2><p>AT模式由于一阶段执行SQL语句后直接提交事务，释放数据库资源，性能比较好，但由此可能会造成脏读问题。为此引用了全局锁来实现读写隔离</p>
+<p><img src="https://images-pl.oss-cn-hangzhou.aliyuncs.com/images/AT%E6%A8%A1%E5%BC%8F%E5%8E%9F%E7%90%86.png"></p>
+<p>$\textcolor{RED}{AT模式与XA模式最大的区别是什么？}$</p>
+<ul>
+<li>XA模式一阶段不提交事务，锁定资源；AT模式一阶段直接提交，不锁定资源</li>
+<li>XA模式依赖数据库机制实现回滚；AT 模式利用快照实现数据回滚</li>
+<li>XA模式强一致，AT模式最终一致</li>
+</ul>
+<h2 id="TCC模式：最终一致的分阶段事务模式，有业务侵入"><a href="#TCC模式：最终一致的分阶段事务模式，有业务侵入" class="headerlink" title="TCC模式：最终一致的分阶段事务模式，有业务侵入"></a>TCC模式：最终一致的分阶段事务模式，有业务侵入</h2><p>TCC模式与AT模式非常相似，每阶段都是独立事务，不同的是TCC通过人工编码来实现数据恢复。需要实现三个方法：</p>
+<ul>
+<li>Try：资源的检测和预留</li>
+<li>Confirm：完成资源操作业务，要求Try成功Confirm一定要能成功</li>
+<li>Cancel：预留资源释放，可以理解为try的反向操作</li>
+</ul>
+<p><img src="https://images-pl.oss-cn-hangzhou.aliyuncs.com/images/TCC.png" alt="TCC"></p>
+<ul>
+<li><p>优点：（1）一阶段直接提交事务，释放数据库资源，性能好；（2）相比AT模型，无须生成快照，无须使用全局锁，性能最强；（3）不依赖数据库事务，而是依赖补偿操作，可以用于非事务型数据库</p>
+</li>
+<li><p>缺点：（1）有代码侵入，try、confirm和cancel三个接口都需要认为编写；（2）软状态，最终一致；（3）需要考虑confirm和cancel的失败情况，做好&#x3D;&#x3D;幂等&#x3D;&#x3D;处理</p>
+</li>
+</ul>
+<h2 id="SAGA模式：长事务模式，有业务侵入"><a href="#SAGA模式：长事务模式，有业务侵入" class="headerlink" title="SAGA模式：长事务模式，有业务侵入"></a>SAGA模式：长事务模式，有业务侵入</h2><p>一阶段：直接提交本地事务</p>
+<p>二阶段：成功则什么都不做，失败则通过编写补偿业务来回滚</p>
+<ul>
+<li>优点：（1）事务参与者可以基于事件驱动实现异步调用，吞吐高。（2）一阶段直接提交事务，无锁，性能好。（3）不用编写TCC中的三个阶段，实现简单</li>
+<li>缺点：（1）软状态持续时间不确定，时效性差。（2）没有锁，没有事务隔离，会有脏写</li>
+</ul>
+<p><img src="https://images-pl.oss-cn-hangzhou.aliyuncs.com/images/%E5%9B%9B%E7%A7%8D%E6%A8%A1%E5%BC%8F%E5%AF%B9%E6%AF%94.png" alt="四种模式对比"></p>
+
+</article>
+
+    <div class="pagenator post-pagenator">
+    
+    
+        <a class="extend prev post-prev" href="/2023/04/08/%E4%BD%BF%E7%94%A8ShardingSphere%E5%AE%9E%E7%8E%B0MySQL%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">prev</a>
+    
+
+    
+    <p>last update time 2023-08-24</p>
+    
+    
+        <a class="extend next post-next" href="/2023/01/29/%E5%B9%BF%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">next</a>
+    
+    </div>
+
+
+    </div>
+    <div class="footer">
+        <div class="container">
+    <div class="social">
+	<ul class="social-list">
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+	</ul>
+</div>
+    <div class="copyright">
+        <span>
+            
+            
+            
+                © 刘盼 2022 - 2023
+            
+        </span>
+    </div>
+    <div class="power">
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> & <a target="_blank" rel="noopener" href="https://github.com/CaiChenghan/iLiKE">iLiKE Theme</a>
+        </span>
+    </div>
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+    <!--page counter part-->
+<script>
+function addCount (Counter) {
+    url=$('.article-date').attr('href').trim();
+    title = $('.article-title').text().trim();
+    var query = new AV.Query(Counter);
+    //use url as unique idnetfication
+    query.equalTo("url",url);
+    query.find({
+        success: function(results) {
+            if (results.length>0) {
+                var counter=results[0];
+                counter.fetchWhenSave(true); //get recent result
+                counter.increment("time");
+                counter.save();
+            } else {
+                var newcounter=new Counter();
+                newcounter.set("title",title);
+                newcounter.set("url",url);
+                newcounter.set("time",1);
+                newcounter.save(null,{
+                    success: function(newcounter) {
+                        //alert('New object created');
+                    }, error: function(newcounter,error) {
+                        alert('Failed to create');
+                    }
+                })
+            }
+        },
+        error: function(error) {
+            //find null is not a error
+            alert('Error:'+error.code+" "+error.message);
+        }
+    });
+}
+$(function() {
+    var Counter=AV.Object.extend("Counter");
+    //only increse visit counting when intering a page
+    if ($('.article-title').length == 1) {
+       addCount(Counter);
+    }
+    var query=new AV.Query(Counter);
+    query.descending("time");
+    // the sum of popular posts
+    query.limit(10); 
+    query.find({
+        success: function(results) {
+                for(var i=0;i<results.length;i++) {
+                    var counter=results[i];
+                    title=counter.get("title");
+                    url=counter.get("url");
+                    time=counter.get("time");
+                    // add to the popularlist widget
+                    showcontent=title+" ("+time+")";
+                    //notice the "" in href
+                    $('.popularlist').append('<li><a href="'+url+'">'+showcontent+'</a></li>');
+                }
+            },
+        error: function(error) {
+            alert("Error:"+error.code+" "+error.message);
+        }
+    });
+});
+</script>
+</div>
+    </div>
+</body>
+</html>

@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   
-  <title>Archives: 10/2022: 2022 [ 刘盼的技术博客 ]</title>
+  <title>fiddler+mitmproxy+夜神模拟器安装 [ 刘盼的技术博客 ]</title>
   
     <!-- stylesheets list from config.yml -->
     
@@ -55,101 +55,52 @@
 </div>
     </div>
     <div class="container">
-        <div class="article">
-      
+        <h1 class="post-title">fiddler+mitmproxy+夜神模拟器安装</h1>
+<article class="post markdown-style">
+  <h1 id="项目场景："><a href="#项目场景：" class="headerlink" title="项目场景："></a>项目场景：</h1><p>需要从电脑端爬取手机APP的数据</p>
+<hr>
+<h1 id="一、电脑端安装fiddler环境"><a href="#一、电脑端安装fiddler环境" class="headerlink" title="一、电脑端安装fiddler环境"></a>一、电脑端安装fiddler环境</h1><p>参考这篇博客</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/thinker001/article/details/122988539">fiddler安装</a></p>
+</blockquote>
+<p><code>注意：</code>第二步允许手机远程连接中，不勾选“Act as system proxy on startup” </p>
+<hr>
+<h1 id="二、下载夜神模拟器"><a href="#二、下载夜神模拟器" class="headerlink" title="二、下载夜神模拟器"></a>二、下载夜神模拟器</h1><blockquote>
+<p>选择你想要的版本进行下载<a target="_blank" rel="noopener" href="https://www.yeshen.com/">夜神</a></p>
+</blockquote>
+<hr>
+<h1 id="三、在python环境下安装mitmproxy"><a href="#三、在python环境下安装mitmproxy" class="headerlink" title="三、在python环境下安装mitmproxy"></a>三、在python环境下安装mitmproxy</h1><blockquote>
+<p>先去安装python环境，自行百度</p>
+</blockquote>
+<p>参考这篇博客<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_33337186/article/details/105428108">mitmproxy安装</a>，只需要执行安装这一步就行，后面的网络代理配置不用管。</p>
+<h1 id="四、进行抓包"><a href="#四、进行抓包" class="headerlink" title="四、进行抓包"></a>四、进行抓包</h1><p>上述环境都安装好后，在夜神模拟器中选择安卓版本为5.0的作为手机环境，然后把你要爬取的APP的安装包（.apk）拖至模拟器中完成安装，我的APP还需要安装两个文件</p>
+<blockquote>
+<p>链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1Il6jDkiowj-H8l_dZ41dUQ">https://pan.baidu.com/s/1Il6jDkiowj-H8l_dZ41dUQ</a><br>提取码：inv7</p>
+</blockquote>
+<p>安装好之后就可以进行爬取了，我是通过执行Python文件进行数据处理，对应的文件为bjypXZ.py。首先cmd打开命令行，然后在命令行执行语句进入到Python文件的文件目录路径，然后执行语句</p>
+<blockquote>
+<p>mitmproxy -s bjypXZ.py -p 8998 –set block_global &#x3D; false</p>
+</blockquote>
+<p>其中的“8998”为你安装fiddler的端口号。之后你就可以爬取到你需要的数据了。</p>
+<p><img src="https://images-pl.oss-cn-hangzhou.aliyuncs.com/images/c6579c0f35c84001801eff43e7dac886.png" alt="执行语句"></p>
+
+</article>
+
+    <div class="pagenator post-pagenator">
     
-      <div class="year-list">
-        <h3>2023</h3>
-        <ul>
-          
-            <li >
-              <time>2023-04-13</time>
-              <a href="/2023/04/13/SpringCloud实用篇/">
-                SpringCloud实用篇
-              </a>
-            </li>
-          
-            <li >
-              <time>2023-04-08</time>
-              <a href="/2023/04/08/使用ShardingSphere实现MySQL分库分表/">
-                ShardingSphere分库分表
-              </a>
-            </li>
-          
-            <li >
-              <time>2023-03-16</time>
-              <a href="/2023/03/16/SpringCloud常用组件/">
-                SpringCloud常用组件
-              </a>
-            </li>
-          
-            <li >
-              <time>2023-01-29</time>
-              <a href="/2023/01/29/广度优先搜索遍历算法/">
-                连通图（分量）的BFS算法
-              </a>
-            </li>
-          
-            <li >
-              <time>2023-01-12</time>
-              <a href="/2023/01/12/缓存击穿、穿透和雪崩/">
-                分布式缓存问题解决方案
-              </a>
-            </li>
-          
-        </ul>
-      </div>
     
-      <div class="year-list">
-        <h3>2022</h3>
-        <ul>
-          
-            <li >
-              <time>2022-12-25</time>
-              <a href="/2022/12/25/缓存与数据库一致性问题/">
-                缓存与数据库一致性问题
-              </a>
-            </li>
-          
-            <li >
-              <time>2022-10-13</time>
-              <a href="/2022/10/13/论文精读-目标检测/">
-                论文精读-目标检测
-              </a>
-            </li>
-          
-            <li >
-              <time>2022-08-10</time>
-              <a href="/2022/08/10/深度优先搜索遍历算法/">
-                深度优先搜索遍历算法
-              </a>
-            </li>
-          
-            <li >
-              <time>2022-07-18</time>
-              <a href="/2022/07/18/fiddler+mitmproxy+夜神模拟器安装/">
-                fiddler+mitmproxy+夜神模拟器安装
-              </a>
-            </li>
-          
-            <li >
-              <time>2022-05-10</time>
-              <a href="/2022/05/10/IntelliJ IDEA 常用快捷键一览表/">
-                IntelliJIDEA常用快捷键一览表
-              </a>
-            </li>
-          
-            <li >
-              <time>2022-05-01</time>
-              <a href="/2022/05/01/Java基本语法/">
-                Java基本语法
-              </a>
-            </li>
-          
-        </ul>
-      </div>
-     
-</div>
+        <a class="extend prev post-prev" href="/2022/08/10/%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">prev</a>
+    
+
+    
+    <p>last update time 2023-08-24</p>
+    
+    
+        <a class="extend next post-next" href="/2022/05/10/IntelliJ%20IDEA%20%E5%B8%B8%E7%94%A8%E5%BF%AB%E6%8D%B7%E9%94%AE%E4%B8%80%E8%A7%88%E8%A1%A8/">next</a>
+    
+    </div>
+
+
     </div>
     <div class="footer">
         <div class="container">

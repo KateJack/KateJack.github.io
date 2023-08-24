@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
+  <title>ShardingSphere分库分表 [ 刘盼的技术博客 ]</title>
+  
+    <!-- stylesheets list from config.yml -->
+    
+      <link rel="stylesheet" href="/css/iLiKE.css">
+    
+  
+  
+  
+  <script src="//cdn1.lncld.net/static/js/3.1.1/av-min.js"></script>
+    <script id="leancloud">
+      AV.init({
+          appId: "6E5zTbTljdUbVW2WkXPsXGJk-gzGzoHsz",
+          appKey: "0vsyDKfNpeSECAI70J794ugv"
+      });
+    </script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+<body>
+    <div class="header">
+        <div class="container">
+    <div class="menu">
+      <div class="menu-left">
+        <a href="/">
+          <img src="/favicon.ico"></img>
+        </a>
+      </div>
+      <div class="menu-right">
+        
+          
+          
+          
+          
+          
+          
+          <a href="/">Home</a>
+        
+          
+          
+          
+          
+          
+          
+          <a href="/archives">Archives</a>
+        
+      </div>
+    </div>
+</div>
+    </div>
+    <div class="container">
+        <h1 class="post-title">ShardingSphere分库分表</h1>
+<article class="post markdown-style">
+  <h1 id="ShardingSphere分库分表"><a href="#ShardingSphere分库分表" class="headerlink" title="ShardingSphere分库分表"></a>ShardingSphere分库分表</h1><h1 id="ShardingSphere介绍"><a href="#ShardingSphere介绍" class="headerlink" title="ShardingSphere介绍"></a>ShardingSphere介绍</h1><p>Apache ShardingSphere 是一套开源的<strong>分布式</strong>数据库中间件解决方案组成的生态圈，它由JDBC、Proxy和Sidecar（规划中）这3款相互独立，却又能够混合部署配合使用的产品组成。 它们均提供标准化的数据分片、分布式事务和数据库治理功能，可适用于如 Java 同构、异构语言、云原生等各种多样化的应用场景。</p>
+<ul>
+<li>一套开源的分布式数据库中间件解决方案</li>
+<li>有3个产品：JDBC、Proxy、Sidecar</li>
+</ul>
+<h1 id="分库分表"><a href="#分库分表" class="headerlink" title="分库分表"></a>分库分表</h1><p>当我们使用读写分离、索引、缓存后，数据库的压力还是很大的时候，这就需要使用到数据库拆分了。</p>
+<blockquote>
+<p>一般来说, MySQL推荐的单表数据量在500w ~ 800w, 超过800w则建议分表.<br>或是在系统接口响应时间明显变慢, 并且通过代码优化, 改写sql等形式无法获得明显提升, 且明确了性能瓶颈在数据库时, 建议分表<br>分库则是在分表后单库性能到达瓶颈后进行, 如果个人或项目有钱任性的除外.分库主要解决的是并发量大的问题。</p>
+</blockquote>
+<h2 id="垂直拆分"><a href="#垂直拆分" class="headerlink" title="垂直拆分"></a>垂直拆分</h2><ul>
+<li>分表<br>表中的<strong>字段</strong>较多，一般将不常用的、 数据较大、长度较长的拆分到“扩展表“。一般情况加表的字段可能有几百列，此时是按照字段进行数竖直切。注意垂直分是列多的情况。</li>
+<li>分库<br> 一个数据库的表太多。此时就会按照一定业务逻辑进行垂直切，比如用户相关的表放在一个数据库里，订单相关的表放在一个数据库里。注意此时不同的数据库应该存放在不同的服务器上，此时磁盘空间、内存、TPS等等都会得到解决。<br> <strong>优点：</strong><ol>
+<li>拆分后业务清晰，拆分规则明确。</li>
+<li>系统之间整合或扩展容易。</li>
+<li>数据维护简单。	<br> <strong>缺点：</strong></li>
+<li>部分业务表无法 join，只能通过接口方式解决，提高了系统复杂度。</li>
+<li>受每种业务不同的限制存在单库性能瓶颈，不易数据扩展跟性能提高。</li>
+<li>事务处理复杂。</li>
+</ol>
+</li>
+</ul>
+<h2 id="水平拆分"><a href="#水平拆分" class="headerlink" title="水平拆分"></a>水平拆分</h2><ul>
+<li>分表<br>单表的<strong>数据量</strong>太大。按照某种规则（RANGE,HASH取模等），切分到多张表里面去。 但是这些表还是在同一个库中，所以库级别的数据库操作还是有IO瓶颈。这种情况是不建议使用的，因为数据量是逐渐增加的，当数据量增加到一定的程度还需要再进行切分。比较麻烦。</li>
+<li>分库<br>  水平分库理论上切分起来是比较麻烦的，它是指将单张表的数据切分到多个服务器上去，每个服务器具有相应的库与表，只是表中数据集合不同。 水平分库分表能够有效的缓解单机和单库的性能瓶颈和压力，突破IO、连接数、硬件资源等的瓶颈。<br>  <strong>优点：</strong>  <ol>
+<li>不存在单库大数据，高并发的性能瓶颈。</li>
+<li>对应用透明，应用端改造较少。</li>
+<li>按照合理拆分规则拆分，join 操作基本避免跨库。</li>
+<li>提高了系统的稳定性跟负载能力。<br>  <strong>缺点：</strong></li>
+<li>拆分规则难以抽象。</li>
+<li>分片事务一致性难以解决。</li>
+<li>数据多次扩展难度跟维护量极大。</li>
+<li>跨库 join 性能较差。</li>
+</ol>
+</li>
+</ul>
+<h2 id="分片后的常见问题"><a href="#分片后的常见问题" class="headerlink" title="分片后的常见问题"></a>分片后的常见问题</h2><ul>
+<li>数据倾斜<br>  这个几乎是无法避免的, 即使是id取模, 也会因为数据的删除导致每张分表的数据不一样, 或者id是UUID, 取模也会导致数据发生倾斜. 但是一般来说倾斜只要不是太离谱, 都在我们的接受范围以内.</li>
+<li>id生成策略<br>如果分片之前你的id是递增的, 那么分片后你就无法保证id的全局唯一性, 这时比较常见的业内方案就是UUID或者SnowFlake.<br>当然如果想要排序和分页, 就需要有个id生成器去统一集中生成连续的id(参考下文).</li>
+<li>全路由<br>这个是最糟糕的情况, 这种情况会让我们的查询比分片之前还要慢, 可以在自定义的分片算法中校验这种情况直接抛出异常, 然后coder们根据日志中的报错来统计这部分sql加以改写.</li>
+<li>jpa级联<br>如果jpa级联中包含分表, 则需要拆除这种级联关系, 以免导致上述全路由情况发生.</li>
+<li>排序&amp;分页<br>如果只是单独分页, Sharding Sphere会剔除数据不写入内存, 实际上不会导致内存的大量占用, 但如果加上排序, 那情况就不容乐观了, <a target="_blank" rel="noopener" href="https://shardingsphere.apache.org/document/legacy/4.x/document/cn/features/sharding/principle/merge/#%E5%88%86%E9%A1%B5%E5%BD%92%E5%B9%B6">官方建议</a>通过可以保证连续性的id去加以限制.</li>
+</ul>
+<h1 id="四种分片算法-amp-五种分片策略"><a href="#四种分片算法-amp-五种分片策略" class="headerlink" title="四种分片算法&amp;五种分片策略"></a>四种分片算法&amp;五种分片策略</h1><h2 id="4种分片算法"><a href="#4种分片算法" class="headerlink" title="4种分片算法"></a>4种分片算法</h2><ul>
+<li>精确分片算法<br>  对应PreciseShardingAlgorithm，用于处理使用单一键作为分片键的&#x3D;与IN进行分片的场景。需要配合StandardShardingStrategy使用。</li>
+<li>范围分片算法<br>  对应RangeShardingAlgorithm，用于处理使用单一键作为分片键的BETWEEN AND、&gt;、&lt;、&gt;&#x3D;、&lt;&#x3D;进行分片的场景。需要配合StandardShardingStrategy使用。</li>
+<li>复合分片算法<br>  对应ComplexKeysShardingAlgorithm，用于处理使用多键作为分片键进行分片的场景，包含多个分片键的逻辑较复杂，需要应用开发者自行处理其中的复杂度。需要配合ComplexShardingStrategy使用。</li>
+<li>Hint分片算法<br>  对应HintShardingAlgorithm，用于处理使用Hint行分片的场景。需要配合HintShardingStrategy使用。</li>
+</ul>
+<h2 id="5种分片策略"><a href="#5种分片策略" class="headerlink" title="5种分片策略"></a>5种分片策略</h2><ul>
+<li>标准分片策略<br>  对应StandardShardingStrategy。提供对SQL语句中的&#x3D;, &gt;, &lt;, &gt;&#x3D;, &lt;&#x3D;, IN和BETWEEN AND的分片操作支持。StandardShardingStrategy只支持单分片键，提供PreciseShardingAlgorithm和RangeShardingAlgorithm两个分片算法。PreciseShardingAlgorithm是必选的，用于处理&#x3D;和IN的分片。RangeShardingAlgorithm是可选的，用于处理BETWEEN AND, &gt;, &lt;, &gt;&#x3D;, &lt;&#x3D;分片，如果不配置RangeShardingAlgorithm，SQL中的BETWEEN AND将按照全库路由处理。</li>
+<li>复合分片策略<br>  对应ComplexShardingStrategy。复合分片策略。提供对SQL语句中的&#x3D;, &gt;, &lt;, &gt;&#x3D;, &lt;&#x3D;, IN和BETWEEN AND的分片操作支持。ComplexShardingStrategy支持多分片键，由于多分片键之间的关系复杂，因此并未进行过多的封装，而是直接将分片键值组合以及分片操作符透传至分片算法，完全由应用开发者实现，提供最大的灵活度。</li>
+<li>行表达式分片策略<br>对应InlineShardingStrategy。使用Groovy的表达式，提供对SQL语句中的&#x3D;和IN的分片操作支持，只支持单分片键。对于简单的分片算法，可以通过简单的配置使用，从而避免繁琐的Java代码开发，如: <code>t_user_$-&gt;&#123;u_id % 8&#125;</code> 表示t_user表根据u_id模8，而分成8张表，表名称为<code>t_user_0</code>到<code>t_user_7</code>。</li>
+<li>Hint分片策略<br>对应HintShardingStrategy。通过Hint指定分片值而非从SQL中提取分片值的方式进行分片的策略。</li>
+<li>不分片策略<br>对应NoneShardingStrategy。不分片的策略。</li>
+</ul>
+<h1 id="ShardingSphere-JDBC"><a href="#ShardingSphere-JDBC" class="headerlink" title="ShardingSphere-JDBC"></a>ShardingSphere-JDBC</h1><p>定位为轻量级 Java 框架，在 Java 的 JDBC 层提供的额外服务。 它使用客户端直连数据库，以 jar 包形式提供服务，无需额外部署和依赖，可理解为增强版的 JDBC 驱动，完全兼容 JDBC 和各种 ORM 框架。</p>
+<blockquote>
+<p>需要注意的是，分库分表并不是由 ShardingSphere-JDBC 来做，它是用来负责操作已经分完之后的 CRUD 操作。</p>
+</blockquote>
+<h2 id="水平分表实操（单分片键，分片类型：HASH-MODE）"><a href="#水平分表实操（单分片键，分片类型：HASH-MODE）" class="headerlink" title="水平分表实操（单分片键，分片类型：HASH_MODE）"></a>水平分表实操（单分片键，分片类型：HASH_MODE）</h2><blockquote>
+<p>环境使用：SpringBoot 2.7.12 + MybatisPlus + ShardingSphere-jdbc 5.2.0 + Druid连接池<br>本示例为单库，库内有6个分表，并且按照order_id的hash值进行取模计算得到实际表</p>
+</blockquote>
+<p>添加Maven依赖</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">2.2</span><span class="number">.2</span>&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;com.zaxxer&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;HikariCP&lt;/artifactId&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;com.mysql&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;mysql-connector-j&lt;/artifactId&gt;</span><br><span class="line">    &lt;scope&gt;runtime&lt;/scope&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.shardingsphere&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;shardingsphere-jdbc-core-spring-boot-starter&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">5.1</span><span class="number">.0</span>&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;</span><br><span class="line">    &lt;scope&gt;test&lt;/scope&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;lombok&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">1.18</span><span class="number">.20</span>&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-boot-starter-logging&lt;/artifactId&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<p>按照水平分表创建数据库</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> `t_order_5`</span><br><span class="line">(</span><br><span class="line">    `order_id`    <span class="type">bigint</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT,</span><br><span class="line">    `price`       <span class="keyword">double</span>(<span class="number">12</span>,<span class="number">2</span>),</span><br><span class="line">    `user_id`     <span class="type">int</span>    <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    `address_id`  <span class="type">bigint</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    `city`        <span class="type">varchar</span>(<span class="number">32</span>) <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    `status`      tinyint <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    `interval_time` datetime <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    `creator`     <span class="type">varchar</span>(<span class="number">32</span>) <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    `create_time` datetime <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    `updater`     <span class="type">varchar</span>(<span class="number">32</span>) <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    `update_time` datetime <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    <span class="keyword">PRIMARY</span> KEY (`order_id`) <span class="keyword">USING</span> BTREE</span><br><span class="line">) ENGINE <span class="operator">=</span> InnoDB AUTO_INCREMENT <span class="operator">=</span> <span class="number">1</span> <span class="type">CHARACTER</span> <span class="keyword">SET</span> <span class="operator">=</span> utf8 <span class="keyword">COLLATE</span> <span class="operator">=</span> utf8_general_ci ROW_FORMAT <span class="operator">=</span> <span class="keyword">Dynamic</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>配置Sharding-jdbc分片策略<br>application.yml内容：</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">main:</span></span><br><span class="line">    <span class="attr">banner-mode:</span> <span class="string">off</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">shardingsphere:</span></span><br><span class="line">    <span class="comment"># 配置数据源，给数据源起别名ds</span></span><br><span class="line">    <span class="attr">datasource:</span></span><br><span class="line">      <span class="attr">ds:</span></span><br><span class="line">        <span class="attr">type:</span> <span class="string">com.zaxxer.hikari.HikariDataSource</span></span><br><span class="line">        <span class="attr">driver-class-name:</span> <span class="string">com.mysql.cj.jdbc.Driver</span></span><br><span class="line">        <span class="attr">jdbc-url:</span> <span class="string">jdbc:mysql://localhost:3306/test?serverTimezone=UTC&amp;useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8</span></span><br><span class="line">        <span class="attr">username:</span> <span class="string">root</span></span><br><span class="line">        <span class="attr">password:</span> <span class="number">1234</span></span><br><span class="line">      <span class="attr">names:</span> <span class="string">ds</span></span><br><span class="line">    <span class="attr">rules:</span></span><br><span class="line">      <span class="attr">sharding:</span></span><br><span class="line">        <span class="attr">binding-tables:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">t_order,t_order_item</span></span><br><span class="line">        <span class="attr">broadcast-tables:</span> <span class="string">t_address</span></span><br><span class="line">        <span class="comment"># 分片算法</span></span><br><span class="line">        <span class="attr">sharding-algorithms:</span></span><br><span class="line">          <span class="attr">t-order-algorithm:</span></span><br><span class="line">            <span class="attr">type:</span> <span class="string">HASH_MOD</span></span><br><span class="line">            <span class="attr">props:</span></span><br><span class="line">              <span class="attr">sharding-count:</span> <span class="string">&#x27;6&#x27;</span></span><br><span class="line">          <span class="attr">t-order-item-inline:</span></span><br><span class="line">            <span class="attr">type:</span> <span class="string">INLINE</span></span><br><span class="line">            <span class="attr">props:</span></span><br><span class="line">              <span class="attr">algorithm-expression:</span> <span class="string">t_order_item_$-&gt;&#123;order_id</span> <span class="string">%</span> <span class="number">2</span><span class="string">&#125;</span></span><br><span class="line">        <span class="attr">tables:</span></span><br><span class="line">        <span class="comment"># 分表</span></span><br><span class="line">          <span class="attr">t_order:</span></span><br><span class="line">            <span class="attr">actual-data-nodes:</span> <span class="string">ds.t_order_$-&gt;&#123;0..5&#125;</span>   <span class="comment"># 真实表名</span></span><br><span class="line">            <span class="attr">table-strategy:</span></span><br><span class="line">              <span class="attr">standard:</span></span><br><span class="line">                <span class="attr">sharding-algorithm-name:</span> <span class="string">t-order-algorithm</span></span><br><span class="line">                <span class="attr">sharding-column:</span> <span class="string">order_id</span>   <span class="comment"># 分片键</span></span><br><span class="line">          <span class="attr">t_order_item:</span></span><br><span class="line">            <span class="attr">actual-data-nodes:</span> <span class="string">ds.t_order_item_$-&gt;&#123;0..1&#125;</span></span><br><span class="line">            <span class="attr">table-strategy:</span></span><br><span class="line">              <span class="attr">standard:</span></span><br><span class="line">                <span class="attr">sharding-algorithm-name:</span> <span class="string">t-order-item-inline</span></span><br><span class="line">                <span class="attr">sharding-column:</span> <span class="string">order_id</span></span><br><span class="line">    <span class="attr">props:</span></span><br><span class="line">      <span class="attr">sql-show:</span> <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#mybatis-plus:</span></span><br><span class="line"><span class="comment">#  global-config:</span></span><br><span class="line"><span class="comment">#    banner: false</span></span><br><span class="line"><span class="comment">#    db-config:</span></span><br><span class="line"><span class="comment">#      id-type: assign_id  #使用雪花算法开启数据入库时ID自增</span></span><br><span class="line"><span class="comment">#      logic-delete-field: deleted</span></span><br><span class="line"><span class="comment">#      logic-delete-value: 1</span></span><br><span class="line"><span class="comment">#      logic-not-delete-value: 0</span></span><br><span class="line"><span class="comment">#  #开启mp的日志（控制台输出）</span></span><br><span class="line"><span class="comment">#  configuration:</span></span><br><span class="line"><span class="comment">#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl</span></span><br><span class="line"></span><br><span class="line"><span class="attr">mybatis:</span></span><br><span class="line">  <span class="attr">mapper-locations:</span> <span class="string">classpath*:/mappers/*-mapper.xml</span></span><br><span class="line">  <span class="attr">type-aliases-package:</span> <span class="string">com.panliu.domain</span></span><br><span class="line">  <span class="attr">configuration:</span></span><br><span class="line">    <span class="attr">default-fetch-size:</span> <span class="number">20</span></span><br><span class="line">    <span class="attr">default-statement-timeout:</span> <span class="number">30</span></span><br><span class="line">    <span class="attr">map-underscore-to-camel-case:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">use-generated-keys:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>测试代码运行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@SpringBootTest</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OrderMapperTests</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> String[] CITIES = &#123;<span class="string">&quot;shanghai&quot;</span>, <span class="string">&quot;beijing&quot;</span>&#125;;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * -120000, 0, 18, 20000, 40000, 50000, 60000, 64000, 80000, 99000</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="type">long</span>[] PRICES = &#123;-<span class="number">120000</span>, <span class="number">0</span>, <span class="number">18</span>, <span class="number">20000</span>, <span class="number">40000</span>, <span class="number">50000</span>, <span class="number">60000</span>, <span class="number">64000</span>, <span class="number">80000</span>, <span class="number">99000</span>&#125;;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> OrderMapper orderMapper;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="comment">//@Disabled</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">save</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">ThreadLocalRandom</span> <span class="variable">random</span> <span class="operator">=</span> ThreadLocalRandom.current();</span><br><span class="line"></span><br><span class="line">        Date[] dates = create();</span><br><span class="line">        IntStream.range(<span class="number">0</span>, <span class="number">20</span>).forEach(i -&gt; &#123;</span><br><span class="line">            <span class="type">Order</span> <span class="variable">order</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Order</span>();</span><br><span class="line">            order.setOrderId(System.nanoTime() + i);</span><br><span class="line">            order.setPrice(PRICES[i % PRICES.length]);</span><br><span class="line">            order.setAddressId(i);</span><br><span class="line">            order.setCity(CITIES[i % <span class="number">2</span>]);</span><br><span class="line">            order.setUserId(Math.abs(random.nextInt()));</span><br><span class="line">            order.setCreator(<span class="string">&quot;user.0&quot;</span> + i);</span><br><span class="line">            order.setIntervalTime(dates[i % <span class="number">5</span>]);</span><br><span class="line">            order.setUpdater(order.getCreator());</span><br><span class="line">            log.info(<span class="string">&quot;====&gt;&#123;&#125;&quot;</span>, order);</span><br><span class="line">            orderMapper.save(order);</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">   <span class="comment">// @Disabled</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">findAll</span><span class="params">()</span> &#123;</span><br><span class="line">        List&lt;Order&gt; list = orderMapper.findAllAtPrice(<span class="number">60000</span>);</span><br><span class="line">        log.info(<span class="string">&quot;===&gt;&#123;&#125;&quot;</span>, list);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Date[] create() &#123;</span><br><span class="line">        Date[] dates = <span class="keyword">new</span> <span class="title class_">Date</span>[<span class="number">6</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Date</span> <span class="variable">date</span> <span class="operator">=</span> DateUtils.parseDate(<span class="string">&quot;2023-08-14 00:00:00&quot;</span>, Locale.CHINA, <span class="string">&quot;yyyy-MM-dd HH:mm:ss&quot;</span>);</span><br><span class="line">            IntStream.range(<span class="number">0</span>, <span class="number">6</span>).forEach(i -&gt; dates[i] = DateUtils.addDays(date, i));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ParseException e) &#123;</span><br><span class="line">            log.error(<span class="string">&quot;date parse fail: &quot;</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> dates;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果<br><img src="https://images-pl.oss-cn-hangzhou.aliyuncs.com/images/d1b5bae359c64d6ba0bc146b0685cc2b.png" alt="在这里插入图片描述"><br><img src="https://images-pl.oss-cn-hangzhou.aliyuncs.com/images/95e24148d5e64a4093a3003478a59d9e.png" alt="在这里插入图片描述"><br><img src="https://images-pl.oss-cn-hangzhou.aliyuncs.com/images/a3cf4415eba14e258f7d13c82d603294.png" alt="在这里插入图片描述"></p>
+<h2 id="复合分片（根据城市和order-id分片）"><a href="#复合分片（根据城市和order-id分片）" class="headerlink" title="复合分片（根据城市和order_id分片）"></a>复合分片（根据城市和order_id分片）</h2><p>application.yml配置</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">rules:</span></span><br><span class="line">  <span class="attr">sharding:</span></span><br><span class="line">    <span class="attr">sharding-algorithms:</span></span><br><span class="line">      <span class="attr">t-order-algorithm:</span></span><br><span class="line">        <span class="attr">type:</span> <span class="string">COMPLEX_INLINE</span></span><br><span class="line">        <span class="attr">props:</span></span><br><span class="line">          <span class="attr">algorithm-expression:</span> <span class="string">t_order_$-&gt;&#123;city&#125;_$-&gt;&#123;order_id</span> <span class="string">%</span> <span class="number">2</span><span class="string">&#125;</span></span><br><span class="line">          <span class="attr">sharding-columns:</span> <span class="string">city,order_id</span></span><br><span class="line">    <span class="attr">tables:</span></span><br><span class="line">      <span class="attr">t_order:</span></span><br><span class="line">        <span class="attr">actual-data-nodes:</span> <span class="string">ds.t_order_$-&gt;&#123;[&#x27;shanghai&#x27;,&#x27;beijing&#x27;]&#125;_$-&gt;&#123;0..1&#125;</span></span><br><span class="line">        <span class="attr">table-strategy:</span></span><br><span class="line">          <span class="attr">complex:</span></span><br><span class="line">            <span class="attr">sharding-algorithm-name:</span> <span class="string">t-order-algorithm</span></span><br><span class="line">            <span class="attr">sharding-columns:</span> <span class="string">city,order_id</span></span><br></pre></td></tr></table></figure>
+<p>分片结果<br><img src="https://images-pl.oss-cn-hangzhou.aliyuncs.com/images/a2737435b5094bf081206485c27ac199.png" alt="在这里插入图片描述"><br><img src="https://images-pl.oss-cn-hangzhou.aliyuncs.com/images/663639c26c0d409a809a17fa0ad29186.png" alt="在这里插入图片描述"></p>
+
+</article>
+
+    <div class="pagenator post-pagenator">
+    
+    
+        <a class="extend prev post-prev" href="/2023/04/13/SpringCloud%E5%AE%9E%E7%94%A8%E7%AF%87/">prev</a>
+    
+
+    
+    <p>last update time 2023-08-24</p>
+    
+    
+        <a class="extend next post-next" href="/2023/03/16/SpringCloud%E5%B8%B8%E7%94%A8%E7%BB%84%E4%BB%B6/">next</a>
+    
+    </div>
+
+
+    </div>
+    <div class="footer">
+        <div class="container">
+    <div class="social">
+	<ul class="social-list">
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+	</ul>
+</div>
+    <div class="copyright">
+        <span>
+            
+            
+            
+                © 刘盼 2022 - 2023
+            
+        </span>
+    </div>
+    <div class="power">
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> & <a target="_blank" rel="noopener" href="https://github.com/CaiChenghan/iLiKE">iLiKE Theme</a>
+        </span>
+    </div>
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+    <!--page counter part-->
+<script>
+function addCount (Counter) {
+    url=$('.article-date').attr('href').trim();
+    title = $('.article-title').text().trim();
+    var query = new AV.Query(Counter);
+    //use url as unique idnetfication
+    query.equalTo("url",url);
+    query.find({
+        success: function(results) {
+            if (results.length>0) {
+                var counter=results[0];
+                counter.fetchWhenSave(true); //get recent result
+                counter.increment("time");
+                counter.save();
+            } else {
+                var newcounter=new Counter();
+                newcounter.set("title",title);
+                newcounter.set("url",url);
+                newcounter.set("time",1);
+                newcounter.save(null,{
+                    success: function(newcounter) {
+                        //alert('New object created');
+                    }, error: function(newcounter,error) {
+                        alert('Failed to create');
+                    }
+                })
+            }
+        },
+        error: function(error) {
+            //find null is not a error
+            alert('Error:'+error.code+" "+error.message);
+        }
+    });
+}
+$(function() {
+    var Counter=AV.Object.extend("Counter");
+    //only increse visit counting when intering a page
+    if ($('.article-title').length == 1) {
+       addCount(Counter);
+    }
+    var query=new AV.Query(Counter);
+    query.descending("time");
+    // the sum of popular posts
+    query.limit(10); 
+    query.find({
+        success: function(results) {
+                for(var i=0;i<results.length;i++) {
+                    var counter=results[i];
+                    title=counter.get("title");
+                    url=counter.get("url");
+                    time=counter.get("time");
+                    // add to the popularlist widget
+                    showcontent=title+" ("+time+")";
+                    //notice the "" in href
+                    $('.popularlist').append('<li><a href="'+url+'">'+showcontent+'</a></li>');
+                }
+            },
+        error: function(error) {
+            alert("Error:"+error.code+" "+error.message);
+        }
+    });
+});
+</script>
+</div>
+    </div>
+</body>
+</html>

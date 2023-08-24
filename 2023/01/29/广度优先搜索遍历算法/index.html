@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
+  <title>连通图（分量）的BFS算法 [ 刘盼的技术博客 ]</title>
+  
+    <!-- stylesheets list from config.yml -->
+    
+      <link rel="stylesheet" href="/css/iLiKE.css">
+    
+  
+  
+  
+  <script src="//cdn1.lncld.net/static/js/3.1.1/av-min.js"></script>
+    <script id="leancloud">
+      AV.init({
+          appId: "6E5zTbTljdUbVW2WkXPsXGJk-gzGzoHsz",
+          appKey: "0vsyDKfNpeSECAI70J794ugv"
+      });
+    </script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+<body>
+    <div class="header">
+        <div class="container">
+    <div class="menu">
+      <div class="menu-left">
+        <a href="/">
+          <img src="/favicon.ico"></img>
+        </a>
+      </div>
+      <div class="menu-right">
+        
+          
+          
+          
+          
+          
+          
+          <a href="/">Home</a>
+        
+          
+          
+          
+          
+          
+          
+          <a href="/archives">Archives</a>
+        
+      </div>
+    </div>
+</div>
+    </div>
+    <div class="container">
+        <h1 class="post-title">连通图（分量）的BFS算法</h1>
+<article class="post markdown-style">
+  <h1 id="连通图（分量）的BFS算法"><a href="#连通图（分量）的BFS算法" class="headerlink" title="连通图（分量）的BFS算法"></a>连通图（分量）的BFS算法</h1><h2 id="算法实现讨论"><a href="#算法实现讨论" class="headerlink" title="算法实现讨论"></a>算法实现讨论</h2><ol>
+<li>与DFS类似，同样要设访问标志数组visited[ ]。</li>
+<li>为了能依次访问上一层次的访问序列中的各顶点的邻接点，需要设置一个结构來保存上一层次的顶<br>  点，即刚刚被访问过且其后继邻接点还未被访问的顶点，并且这一结构还要满足这样的条件：<em>这一<br>  层中最先被访问的顶点，其后继邻接点也应被最先访问到</em>。由此可知，这一结构应是&#x3D;&#x3D;队列&#x3D;&#x3D;。</li>
+<li>既然涉及到队列（不妨设为Q），则需要在适当的情况下操作队列：<br>  （a）初始化：开始时要设置队列Q为空；<br>  （b）入队：每访问一个顶点v，除了访问操作、设置标志外，还要将其入队。在此不妨设为enQueue(v)。<br>  （c）出队：取队头元素v，不妨用getFront(v)，队头出队，然后要依次访问v的所有未被访问过的邻接点。求解v的邻接点，方法与DFS相同。</li>
+<li>综上所述，可将BFS(v)细化如下：<ul>
+<li>初始化队列Q；</li>
+<li>访问v（包括三个操作：访问v，设置标志，入队）</li>
+<li>若队列Q为空，则结束BFS(v)，否则，转4</li>
+<li>v&#x3D;Q.getFront(Q); Q.oueQueue()</li>
+<li>w&#x3D;v的第一邻接点 &#x2F;&#x2F;依次访问v的未被访问的邻接点</li>
+<li>若w未被访问过，则访问w（同样包括访问w，设置标志，入队这三个操作）</li>
+<li>w&#x3D;v的下一个邻接点，若不存在，转3</li>
+<li>转6</li>
+</ul>
+</li>
+</ol>
+<h2 id="BFS算法描述"><a href="#BFS算法描述" class="headerlink" title="BFS算法描述"></a>BFS算法描述</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// An highlighted block</span></span><br><span class="line"><span class="comment">//从指定编号为v的顶点出发广度遍历</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">BFS</span>(<span class="params">Graph G,int v</span>)</span><br><span class="line">&#123;</span><br><span class="line">	int w;</span><br><span class="line">	<span class="title class_">Queue</span> Q;       <span class="comment">//初始化队列</span></span><br><span class="line">	<span class="title function_">visit</span>(v);      <span class="comment">//访问顶点v</span></span><br><span class="line">	visited[v] = <span class="variable constant_">TRUE</span>;   <span class="comment">//访问顶点v已访问</span></span><br><span class="line">	<span class="title function_">enQueue</span>(Q,v);        <span class="comment">//v入队</span></span><br><span class="line">	<span class="keyword">while</span>(!<span class="title function_">queueEmpty</span>(Q))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="title function_">getFront</span>(Q,v);   <span class="comment">//取队头元素到v</span></span><br><span class="line">		<span class="title function_">outQueue</span>(Q);  <span class="comment">//队头元素出队</span></span><br><span class="line">		w = <span class="title function_">firstAdj</span>(G,v);  <span class="comment">//查找v的第一个邻接点</span></span><br><span class="line">		<span class="keyword">while</span>(w!=<span class="number">0</span>) <span class="comment">//循环搜索v的每一个邻接点</span></span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span>(!visited[w]) <span class="comment">//邻接点w未被访问</span></span><br><span class="line">			&#123;</span><br><span class="line">				<span class="title function_">visit</span>(G,w);      <span class="comment">//访问顶点w</span></span><br><span class="line">				visited[w] = <span class="variable constant_">TRUE</span>;   <span class="comment">//标记顶点w已经访问</span></span><br><span class="line">				<span class="title function_">enQueue</span>(Q,w);      <span class="comment">//w入队</span></span><br><span class="line">			&#125;</span><br><span class="line">			w = <span class="title function_">nextAdj</span>(G,v,w);  <span class="comment">//查找顶底v的在w之后的下一个邻接点</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="一般图的（通用）BFS算法"><a href="#一般图的（通用）BFS算法" class="headerlink" title="一般图的（通用）BFS算法"></a>一般图的（通用）BFS算法</h1><h2 id="算法描述"><a href="#算法描述" class="headerlink" title="算法描述"></a>算法描述</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// An highlighted block</span></span><br><span class="line"><span class="keyword">void</span> <span class="title class_">BFSTraverse</span>( <span class="title class_">Graph</span> G, int v )</span><br><span class="line">&#123;</span><br><span class="line">	int i;</span><br><span class="line">	<span class="keyword">for</span> (i=<span class="number">1</span>; i&lt;=n; i++)</span><br><span class="line">		visited[i]=<span class="variable constant_">FALSE</span>;</span><br><span class="line">	<span class="comment">//广度优先遍历指定起点v的连通分量</span></span><br><span class="line">	<span class="title function_">BFS</span>(G,v);</span><br><span class="line">	<span class="keyword">for</span> (i=<span class="number">1</span>; i&lt;=n; i++)</span><br><span class="line">		<span class="keyword">if</span>( !visited[i] )</span><br><span class="line">			<span class="title function_">BFS</span>( G, i );</span><br><span class="line">	<span class="comment">//每执行一次BFS(i)，广度遍历一个连通分量</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="连通图（分量）BFS的实现"><a href="#连通图（分量）BFS的实现" class="headerlink" title="连通图（分量）BFS的实现"></a>连通图（分量）BFS的实现</h1><p>（1） BFS基于邻接矩阵的实现参考</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// An highlighted block</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">BFS</span>(<span class="params">Graph G,int v</span>)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="title class_">Queue</span>&lt;int,<span class="number">100</span>&gt; 	Q;      <span class="comment">//初始化队列</span></span><br><span class="line">	<span class="title function_">visit</span>(v);      <span class="comment">//访问顶点v</span></span><br><span class="line">	visited[v] = <span class="variable constant_">TRUE</span>; <span class="comment">//标记顶点V已经访问</span></span><br><span class="line">	Q.<span class="title function_">enQueue</span>(v);      <span class="comment">//编号为v的顶点入队</span></span><br><span class="line">	int u ;</span><br><span class="line">	<span class="keyword">while</span>(!Q.<span class="title function_">empty</span>()) <span class="comment">//队列不空循环处理顶点</span></span><br><span class="line">	&#123;</span><br><span class="line">		Q.<span class="title function_">getFront</span>(u);   <span class="comment">//取队头元素到u，即顶点编号为U</span></span><br><span class="line">		Q.<span class="title function_">outQueue</span>();  <span class="comment">//u出队</span></span><br><span class="line">		<span class="keyword">for</span>(int w=<span class="number">1</span>;w&lt;=<span class="title class_">VerNum</span>;w++)</span><br><span class="line">		&#123;    <span class="comment">//循环处理u的每个未访问的邻接点</span></span><br><span class="line">			<span class="keyword">if</span>((<span class="title class_">AdjMatrix</span>[u][w]&gt;=<span class="number">1</span>) &amp;&amp; (<span class="title class_">AdjMatrix</span>[u][w]&lt;=<span class="variable constant_">INF</span>) &amp;&amp; (!visited[w]))</span><br><span class="line">			&#123;</span><br><span class="line">				<span class="title function_">visit</span>(w);     <span class="comment">//访问顶点w</span></span><br><span class="line">				visited[w] = <span class="variable constant_">TRUE</span>; <span class="comment">//标记w已经访问</span></span><br><span class="line">				Q.<span class="title function_">enQueue</span>(w);         <span class="comment">//编号w的邻接点入队</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>（2）BFS基于邻接表的实现参考</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// An highlighted block</span></span><br><span class="line"><span class="keyword">void</span> <span class="title class_">Graph</span>::<span class="title function_">BFS</span>(<span class="params">int v</span>)</span><br><span class="line">&#123;</span><br><span class="line">	int u; <span class="comment">//顶点编号</span></span><br><span class="line">	<span class="title class_">EdgeNode</span> *p; <span class="comment">//边链表结点指针</span></span><br><span class="line">	<span class="title class_">Queue</span>&lt;int,<span class="number">100</span>&gt; Q; <span class="comment">//初始化队列</span></span><br><span class="line">	<span class="title function_">visit</span>(v); <span class="comment">//访问编号为v的顶点</span></span><br><span class="line">	visited[v]=<span class="literal">true</span>; <span class="comment">//标记顶点v已经访问</span></span><br><span class="line">	Q.<span class="title function_">enQueue</span>(v); <span class="comment">//编号v入队</span></span><br><span class="line">	<span class="keyword">while</span>( !Q.<span class="title function_">empty</span>() ) <span class="comment">//队列不空循环处理顶点</span></span><br><span class="line">	&#123;</span><br><span class="line">		Q.<span class="title function_">getFront</span>(u); <span class="comment">//取队头元素到u，即顶点编号为u。</span></span><br><span class="line">		Q.<span class="title function_">outQueue</span>(); <span class="comment">//u出队</span></span><br><span class="line">		p=<span class="title class_">VerList</span>[u].<span class="property">firstEdge</span>; <span class="comment">//获取当前顶点u边链表的头指针</span></span><br><span class="line">		<span class="keyword">while</span>( p )</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span>( !visited[p-&gt;adjVer] )</span><br><span class="line">			&#123; <span class="comment">//p-&gt;adjVer为邻接点编号，访问此结点</span></span><br><span class="line">				<span class="title function_">visit</span>(p-&gt;adjVer);</span><br><span class="line">				<span class="comment">//标记顶点p-&gt;adjVer已经访问</span></span><br><span class="line">				visited[p-&gt;adjVer]=<span class="literal">true</span>;</span><br><span class="line">				Q.<span class="title function_">enQueue</span>(p-&gt;adjVer); <span class="comment">//顶点p-&gt;adjVer入栈</span></span><br><span class="line">			&#125;</span><br><span class="line">			p=p-&gt;next; <span class="comment">//移动到下一条边，即找到下一个邻接点</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+</article>
+
+    <div class="pagenator post-pagenator">
+    
+    
+        <a class="extend prev post-prev" href="/2023/03/16/SpringCloud%E5%B8%B8%E7%94%A8%E7%BB%84%E4%BB%B6/">prev</a>
+    
+
+    
+    <p>last update time 2023-08-24</p>
+    
+    
+        <a class="extend next post-next" href="/2023/01/12/%E7%BC%93%E5%AD%98%E5%87%BB%E7%A9%BF%E3%80%81%E7%A9%BF%E9%80%8F%E5%92%8C%E9%9B%AA%E5%B4%A9/">next</a>
+    
+    </div>
+
+
+    </div>
+    <div class="footer">
+        <div class="container">
+    <div class="social">
+	<ul class="social-list">
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+	</ul>
+</div>
+    <div class="copyright">
+        <span>
+            
+            
+            
+                © 刘盼 2022 - 2023
+            
+        </span>
+    </div>
+    <div class="power">
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> & <a target="_blank" rel="noopener" href="https://github.com/CaiChenghan/iLiKE">iLiKE Theme</a>
+        </span>
+    </div>
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+    <!--page counter part-->
+<script>
+function addCount (Counter) {
+    url=$('.article-date').attr('href').trim();
+    title = $('.article-title').text().trim();
+    var query = new AV.Query(Counter);
+    //use url as unique idnetfication
+    query.equalTo("url",url);
+    query.find({
+        success: function(results) {
+            if (results.length>0) {
+                var counter=results[0];
+                counter.fetchWhenSave(true); //get recent result
+                counter.increment("time");
+                counter.save();
+            } else {
+                var newcounter=new Counter();
+                newcounter.set("title",title);
+                newcounter.set("url",url);
+                newcounter.set("time",1);
+                newcounter.save(null,{
+                    success: function(newcounter) {
+                        //alert('New object created');
+                    }, error: function(newcounter,error) {
+                        alert('Failed to create');
+                    }
+                })
+            }
+        },
+        error: function(error) {
+            //find null is not a error
+            alert('Error:'+error.code+" "+error.message);
+        }
+    });
+}
+$(function() {
+    var Counter=AV.Object.extend("Counter");
+    //only increse visit counting when intering a page
+    if ($('.article-title').length == 1) {
+       addCount(Counter);
+    }
+    var query=new AV.Query(Counter);
+    query.descending("time");
+    // the sum of popular posts
+    query.limit(10); 
+    query.find({
+        success: function(results) {
+                for(var i=0;i<results.length;i++) {
+                    var counter=results[i];
+                    title=counter.get("title");
+                    url=counter.get("url");
+                    time=counter.get("time");
+                    // add to the popularlist widget
+                    showcontent=title+" ("+time+")";
+                    //notice the "" in href
+                    $('.popularlist').append('<li><a href="'+url+'">'+showcontent+'</a></li>');
+                }
+            },
+        error: function(error) {
+            alert("Error:"+error.code+" "+error.message);
+        }
+    });
+});
+</script>
+</div>
+    </div>
+</body>
+</html>
